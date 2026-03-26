@@ -20,7 +20,7 @@ interface UIState {
 
 function getInitialTheme(): Theme {
   try {
-    const stored = localStorage.getItem('agentlink-theme');
+    const stored = localStorage.getItem('agentlinc-theme');
     if (stored === 'light' || stored === 'dark') return stored;
   } catch {}
   return 'dark';
@@ -29,7 +29,7 @@ function getInitialTheme(): Theme {
 function applyTheme(theme: Theme) {
   document.documentElement.setAttribute('data-theme', theme);
   try {
-    localStorage.setItem('agentlink-theme', theme);
+    localStorage.setItem('agentlinc-theme', theme);
   } catch {}
 }
 

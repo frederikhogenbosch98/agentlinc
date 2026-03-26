@@ -38,6 +38,9 @@ interface GraphState {
   // Subsystem management
   createSubsystem: (parentNodeId: string) => string;
 
+  // Duplicate
+  duplicateNodes: (nodeIds: string[]) => string[];
+
   // Project
   setProject: (project: Project) => void;
   setProjectName: (name: string) => void;
@@ -333,6 +336,70 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       };
     });
     return subsystemId;
+  },
+
+  duplicateNodes: (nodeIds) => {
+    useHistoryStore.getState().pushSnapshot(get().project);
+    const newIds: string[] = [];
+    set((state) => {
+      const subsystem = state.project.subsystems[state.activeSubsystemId];
+      if (!subsystem) return state;
+
+      const newNodes = { ...state.project.nodes };
+      const addedIds: string[] = [];
+
+      for (const oldId of nodeIds) {
+        const oldNode = state.project.nodes[oldId];
+        if (!oldNode) continue;
+        const newId = nanoid(10);
+        addedIds.push(newId);
+
+        // Deep clone data, strip subsystemId so the duplicate is independent
+        const clonedData = JSON.parse(JSON.stringify(oldNode.data));
+        if (clonedData.kind === 'system') {
+          delete clonedData.subsystemId;
+        }
+
+        // Re-generate port IDs for system nodes
+        if (clonedData.kind === 'system') {
+          clonedData.inputs = clonedData.inputs.map((p: any) => ({
+            ...p,
+            id: `in_${nanoid(6)}`,
+          }));
+          clonedData.outputs = clonedData.outputs.map((p: any) => ({
+            ...p,
+            id: `out_${nanoid(6)}`,
+          }));
+        }
+
+        newNodes[newId] = {
+          id: newId,
+          position: { x: oldNode.position.x + 40, y: oldNode.position.y + 40 },
+          data: clonedData,
+        };
+      }
+
+      newIds.push(...addedIds);
+
+      return {
+        project: {
+          ...state.project,
+          nodes: newNodes,
+          subsystems: {
+            ...state.project.subsystems,
+            [state.activeSubsystemId]: {
+              ...subsystem,
+              nodeIds: [...subsystem.nodeIds, ...addedIds],
+            },
+          },
+          metadata: {
+            ...state.project.metadata,
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      };
+    });
+    return newIds;
   },
 
   setProject: (project) => {

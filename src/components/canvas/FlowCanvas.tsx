@@ -152,7 +152,7 @@ export function FlowCanvas() {
   const onDrop = useCallback(
     (event: DragEvent) => {
       event.preventDefault();
-      const raw = event.dataTransfer.getData('application/agentlink-block');
+      const raw = event.dataTransfer.getData('application/agentlinc-block');
       if (!raw) return;
 
       try {

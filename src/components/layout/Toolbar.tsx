@@ -58,7 +58,7 @@ export function Toolbar() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${project.name.replace(/\s+/g, '_').toLowerCase()}.agentlink.json`;
+    a.download = `${project.name.replace(/\s+/g, '_').toLowerCase()}.agentlinc.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [project]);
@@ -79,7 +79,7 @@ export function Toolbar() {
           setProject(imported);
         } catch (err) {
           console.error('Failed to import project:', err);
-          alert('Failed to import: invalid AgentLink JSON file');
+          alert('Failed to import: invalid AgentLinc JSON file');
         }
       };
       reader.readAsText(file);
@@ -92,7 +92,7 @@ export function Toolbar() {
   return (
     <div className="toolbar">
       <div className="toolbar-left">
-        <span className="toolbar-logo">AgentLink</span>
+        <span className="toolbar-logo">AgentLinc</span>
         <span className="toolbar-separator">/</span>
         <span className="toolbar-project-name">{projectName}</span>
       </div>

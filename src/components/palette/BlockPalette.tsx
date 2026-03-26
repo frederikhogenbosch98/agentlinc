@@ -55,7 +55,7 @@ const PALETTE_BLOCKS: PaletteBlock[] = [
 
 function onDragStart(event: DragEvent, block: PaletteBlock) {
   const data = JSON.stringify(block.defaultData());
-  event.dataTransfer.setData('application/agentlink-block', data);
+  event.dataTransfer.setData('application/agentlinc-block', data);
   event.dataTransfer.effectAllowed = 'move';
 }
 

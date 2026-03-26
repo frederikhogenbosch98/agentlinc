@@ -40,6 +40,16 @@ export function useKeyboardShortcuts() {
         }
       }
 
+      // Cmd/Ctrl+D: Duplicate selected nodes
+      if (isMod && e.key === 'd') {
+        const selected = useUIStore.getState().selectedNodeIds;
+        if (selected.length > 0) {
+          e.preventDefault();
+          const newIds = useGraphStore.getState().duplicateNodes(selected);
+          useUIStore.getState().selectNodes(newIds);
+        }
+      }
+
       // Backspace or Delete: Delete selected nodes
       if (e.key === 'Backspace' || e.key === 'Delete') {
         const selected = useUIStore.getState().selectedNodeIds;
