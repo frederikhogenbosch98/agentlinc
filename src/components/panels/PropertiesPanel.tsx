@@ -3,8 +3,10 @@ import { useGraphStore } from '../../store/useGraphStore';
 import { useUIStore } from '../../store/useUIStore';
 import { DocTabs } from './DocTabs';
 import { DebouncedInput, DebouncedTextarea } from './DebouncedInput';
-import type { SystemNodeData, NoteNodeData, Port, Docs } from '../../types';
-import { nanoid } from 'nanoid';
+import type { SystemNodeData, NoteNodeData, Docs, SystemType, ModelConfig, ModelLayer, LayerNodeData } from '../../types';
+import { SYSTEM_TYPES, LAYER_TYPES, createDefaultModelConfig } from '../../types';
+import { ModelConfigEditor } from './ModelConfigEditor';
+import { ModelLayerBuilder } from './ModelLayerBuilder';
 
 export function PropertiesPanel() {
   const selectedNodeIds = useUIStore((s) => s.selectedNodeIds);
@@ -40,6 +42,9 @@ export function PropertiesPanel() {
         {data.kind === 'ioport' && (
           <IOPortProperties nodeId={nodeId} data={data} onChange={(d) => updateNodeData(nodeId, d)} />
         )}
+        {data.kind === 'layer' && (
+          <LayerProperties nodeId={nodeId} data={data} onChange={(d) => updateNodeData(nodeId, d)} />
+        )}
       </div>
     </div>
   );
@@ -66,32 +71,6 @@ function SystemProperties({
     }
   }, [data.subsystemId, nodeId, createSubsystem, navigateInto]);
 
-  const handleAddInput = useCallback(() => {
-    const newPort: Port = { id: `in_${nanoid(6)}`, name: `input_${data.inputs.length}` };
-    onChange({ inputs: [...data.inputs, newPort] });
-  }, [data.inputs, onChange]);
-
-  const handleAddOutput = useCallback(() => {
-    const newPort: Port = { id: `out_${nanoid(6)}`, name: `output_${data.outputs.length}` };
-    onChange({ outputs: [...data.outputs, newPort] });
-  }, [data.outputs, onChange]);
-
-  const handleRemovePort = useCallback(
-    (direction: 'inputs' | 'outputs', portId: string) => {
-      onChange({ [direction]: data[direction].filter((p) => p.id !== portId) });
-    },
-    [data, onChange]
-  );
-
-  const handleRenamePort = useCallback(
-    (direction: 'inputs' | 'outputs', portId: string, name: string) => {
-      onChange({
-        [direction]: data[direction].map((p) => (p.id === portId ? { ...p, name } : p)),
-      });
-    },
-    [data, onChange]
-  );
-
   const handleDocsChange = useCallback(
     (docs: Docs) => onChange({ docs }),
     [onChange]
@@ -109,55 +88,30 @@ function SystemProperties({
       </div>
 
       <div className="prop-section">
+        <label className="prop-label">Type</label>
+        <select
+          className="prop-input prop-select"
+          value={data.systemType || 'default'}
+          onChange={(e) => {
+            const newType = e.target.value as SystemType;
+            const updates: Partial<SystemNodeData> = { systemType: newType };
+            if (newType === 'model' && !data.modelConfig) {
+              updates.modelConfig = createDefaultModelConfig();
+              updates.modelLayers = [];
+            }
+            onChange(updates);
+          }}
+        >
+          {SYSTEM_TYPES.map((t) => (
+            <option key={t.value} value={t.value}>{t.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="prop-section">
         <button className="prop-subsystem-btn" onClick={handleSubsystem}>
           {data.subsystemId ? 'Open Subsystem' : 'Create Subsystem'}
         </button>
-      </div>
-
-      <div className="prop-section">
-        <div className="prop-section-header">
-          <label className="prop-label">Inputs</label>
-          <button className="prop-add-btn" onClick={handleAddInput}>+ Add</button>
-        </div>
-        {data.inputs.map((port) => (
-          <div key={port.id} className="port-editor">
-            <DebouncedInput
-              className="prop-input port-input"
-              value={port.name}
-              onChange={(v) => handleRenamePort('inputs', port.id, v)}
-            />
-            <button
-              className="port-remove-btn"
-              onClick={() => handleRemovePort('inputs', port.id)}
-              title="Remove port"
-            >
-              x
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div className="prop-section">
-        <div className="prop-section-header">
-          <label className="prop-label">Outputs</label>
-          <button className="prop-add-btn" onClick={handleAddOutput}>+ Add</button>
-        </div>
-        {data.outputs.map((port) => (
-          <div key={port.id} className="port-editor">
-            <DebouncedInput
-              className="prop-input port-input"
-              value={port.name}
-              onChange={(v) => handleRenamePort('outputs', port.id, v)}
-            />
-            <button
-              className="port-remove-btn"
-              onClick={() => handleRemovePort('outputs', port.id)}
-              title="Remove port"
-            >
-              x
-            </button>
-          </div>
-        ))}
       </div>
 
       <div className="prop-section prop-section-docs">
@@ -214,6 +168,58 @@ function IOPortProperties({
         <label className="prop-label">Direction</label>
         <span className="prop-badge">{data.direction}</span>
       </div>
+    </>
+  );
+}
+
+function LayerProperties({
+  nodeId,
+  data,
+  onChange,
+}: {
+  nodeId: string;
+  data: LayerNodeData;
+  onChange: (d: Partial<LayerNodeData>) => void;
+}) {
+  const def = LAYER_TYPES.find((l) => l.value === data.layerType);
+
+  const handleParamChange = useCallback(
+    (key: string, value: any) => {
+      onChange({ params: { ...data.params, [key]: value } });
+    },
+    [data.params, onChange]
+  );
+
+  return (
+    <>
+      <div className="prop-section">
+        <label className="prop-label">Layer Type</label>
+        <span className="prop-badge">{def?.label || data.layerType}</span>
+      </div>
+
+      {Object.entries(data.params).map(([key, value]) => (
+        <div key={key} className="prop-section">
+          <label className="prop-label">{key}</label>
+          {typeof value === 'boolean' ? (
+            <input
+              type="checkbox"
+              className="layer-param-checkbox"
+              checked={value}
+              onChange={(e) => handleParamChange(key, e.target.checked)}
+            />
+          ) : (
+            <input
+              className="prop-input"
+              type="number"
+              value={value}
+              onChange={(e) => {
+                const num = parseFloat(e.target.value);
+                handleParamChange(key, isNaN(num) ? e.target.value : num);
+              }}
+            />
+          )}
+        </div>
+      ))}
     </>
   );
 }

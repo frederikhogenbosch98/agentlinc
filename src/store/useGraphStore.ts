@@ -10,6 +10,22 @@ import type {
 import { createDefaultProject, createEmptyDocs } from '../types';
 import { useHistoryStore } from './useHistoryStore';
 
+const STORAGE_KEY = 'agentlinc-project';
+
+function loadProject(): Project {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw) as Project;
+  } catch {}
+  return createDefaultProject();
+}
+
+function saveProject(project: Project) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+  } catch {}
+}
+
 interface GraphState {
   project: Project;
   activeSubsystemId: string;
@@ -46,10 +62,12 @@ interface GraphState {
   setProjectName: (name: string) => void;
 }
 
+const initialProject = loadProject();
+
 export const useGraphStore = create<GraphState>((set, get) => ({
-  project: createDefaultProject(),
-  activeSubsystemId: 'root',
-  navigationStack: ['root'],
+  project: initialProject,
+  activeSubsystemId: initialProject.rootSubsystemId,
+  navigationStack: [initialProject.rootSubsystemId],
 
   getActiveSubsystem: () => {
     const { project, activeSubsystemId } = get();
@@ -416,3 +434,6 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }));
   },
 }));
+
+// Auto-save to localStorage on every project change
+useGraphStore.subscribe((state) => saveProject(state.project));

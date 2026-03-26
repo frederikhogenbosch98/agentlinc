@@ -48,22 +48,8 @@ export function serializeProject(project: Project): ExportSchema {
       const targetNode = project.nodes[edge.targetNodeId];
       if (!sourceNode || !targetNode) continue;
 
-      let sourcePortName = edge.sourcePortId;
-      let targetPortName = edge.targetPortId;
-
-      if (sourceNode.data.kind === 'system') {
-        const port = (sourceNode.data as SystemNodeData).outputs.find((p) => p.id === edge.sourcePortId);
-        if (port) sourcePortName = port.name;
-      } else if (sourceNode.data.kind === 'ioport') {
-        sourcePortName = 'port';
-      }
-
-      if (targetNode.data.kind === 'system') {
-        const port = (targetNode.data as SystemNodeData).inputs.find((p) => p.id === edge.targetPortId);
-        if (port) targetPortName = port.name;
-      } else if (targetNode.data.kind === 'ioport') {
-        targetPortName = 'port';
-      }
+      const sourcePortName = edge.sourcePortId;
+      const targetPortName = edge.targetPortId;
 
       // Use node name for readability
       const sourceNodeName = sourceNode.data.kind === 'system'

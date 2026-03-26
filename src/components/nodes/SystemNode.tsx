@@ -1,9 +1,31 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import { SYSTEM_TYPES } from '../../types';
+import { useGraphStore } from '../../store/useGraphStore';
 
-function SystemNodeComponent({ data, selected }: any) {
+const BIDIRECTIONAL_TYPES = new Set(['database', 'remote-server']);
+
+function SystemNodeComponent({ id, data, selected }: any) {
   if (!data || data.kind !== 'system') return null;
   const hasSubsystem = Boolean(data.subsystemId);
+  const typeLabel = SYSTEM_TYPES.find((t) => t.value === data.systemType)?.label || 'Default';
+  const isBidirectional = BIDIRECTIONAL_TYPES.has(data.systemType);
+
+  const navigateInto = useGraphStore((s) => s.navigateInto);
+  const createSubsystem = useGraphStore((s) => s.createSubsystem);
+
+  const handleSubsystemClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (data.subsystemId) {
+        navigateInto(data.subsystemId);
+      } else {
+        const subId = createSubsystem(id);
+        navigateInto(subId);
+      }
+    },
+    [id, data.subsystemId, navigateInto, createSubsystem]
+  );
 
   return (
     <div
@@ -11,47 +33,30 @@ function SystemNodeComponent({ data, selected }: any) {
     >
       <div className="system-node-header">
         <span className="system-node-name">{data.name}</span>
-        {hasSubsystem && <span className="system-node-badge" title="Double-click to open">&#x25B6;</span>}
+        <button
+          className="system-node-subsystem-btn"
+          onClick={handleSubsystemClick}
+          title={hasSubsystem ? 'Open subsystem' : 'Create subsystem'}
+        >
+          &#x25BC;
+        </button>
       </div>
 
-      <div className="system-node-body">
-        <div className="system-node-ports">
-          <div className="system-node-inputs">
-            {(data.inputs || []).map((port: any, i: number) => (
-              <div key={port.id} className="system-node-port">
-                <Handle
-                  type="target"
-                  position={Position.Left}
-                  id={port.id}
-                  style={{ top: `${32 + 24 + i * 24}px` }}
-                  className="port-handle"
-                />
-                <span className="port-name input-port-name">{port.name}</span>
-              </div>
-            ))}
-          </div>
-          <div className="system-node-outputs">
-            {(data.outputs || []).map((port: any, i: number) => (
-              <div key={port.id} className="system-node-port output">
-                <span className="port-name output-port-name">{port.name}</span>
-                <Handle
-                  type="source"
-                  position={Position.Right}
-                  id={port.id}
-                  style={{ top: `${32 + 24 + i * 24}px` }}
-                  className="port-handle"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className={`system-node-type system-type-${data.systemType || 'default'}`}>
+        {typeLabel}
       </div>
 
-      {data.docs?.description && (
-        <div className="system-node-description">
-          {data.docs.description.slice(0, 80)}
-          {data.docs.description.length > 80 ? '...' : ''}
-        </div>
+      {isBidirectional ? (
+        /* Single handle on the left that accepts both in and out */
+        <>
+          <Handle type="target" position={Position.Left} id="io" className="port-handle port-handle-bidi" />
+          <Handle type="source" position={Position.Left} id="io" className="port-handle port-handle-bidi" />
+        </>
+      ) : (
+        <>
+          <Handle type="target" position={Position.Left} id="in" className="port-handle" />
+          <Handle type="source" position={Position.Right} id="out" className="port-handle" />
+        </>
       )}
     </div>
   );
