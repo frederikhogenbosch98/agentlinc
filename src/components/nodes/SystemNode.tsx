@@ -47,10 +47,10 @@ function SystemNodeComponent({ id, data, selected }: any) {
       </div>
 
       {isBidirectional ? (
-        /* Single handle on the left that accepts both in and out */
+        /* Single handle on the bottom that accepts both in and out */
         <>
-          <Handle type="target" position={Position.Left} id="io" className="port-handle port-handle-bidi" />
-          <Handle type="source" position={Position.Left} id="io" className="port-handle port-handle-bidi" />
+          <Handle type="target" position={Position.Bottom} id="io" className="port-handle port-handle-bidi" />
+          <Handle type="source" position={Position.Bottom} id="io" className="port-handle port-handle-bidi" />
         </>
       ) : (
         <>

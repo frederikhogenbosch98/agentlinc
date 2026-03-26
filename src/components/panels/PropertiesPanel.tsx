@@ -3,7 +3,7 @@ import { useGraphStore } from '../../store/useGraphStore';
 import { useUIStore } from '../../store/useUIStore';
 import { DocTabs } from './DocTabs';
 import { DebouncedInput, DebouncedTextarea } from './DebouncedInput';
-import type { SystemNodeData, NoteNodeData, Docs, SystemType, ModelConfig, ModelLayer, LayerNodeData } from '../../types';
+import type { SystemNodeData, FunctionNodeData, Docs, SystemType, ModelConfig, ModelLayer, LayerNodeData } from '../../types';
 import { SYSTEM_TYPES, LAYER_TYPES, createDefaultModelConfig } from '../../types';
 import { ModelConfigEditor } from './ModelConfigEditor';
 import { ModelLayerBuilder } from './ModelLayerBuilder';
@@ -36,8 +36,8 @@ export function PropertiesPanel() {
         {data.kind === 'system' && (
           <SystemProperties nodeId={nodeId} data={data} onChange={(d) => updateNodeData(nodeId, d)} />
         )}
-        {data.kind === 'note' && (
-          <NoteProperties nodeId={nodeId} data={data} onChange={(d) => updateNodeData(nodeId, d)} />
+        {data.kind === 'function' && (
+          <FunctionProperties nodeId={nodeId} data={data} onChange={(d) => updateNodeData(nodeId, d)} />
         )}
         {data.kind === 'ioport' && (
           <IOPortProperties nodeId={nodeId} data={data} onChange={(d) => updateNodeData(nodeId, d)} />
@@ -122,23 +122,23 @@ function SystemProperties({
   );
 }
 
-function NoteProperties({
+function FunctionProperties({
   nodeId,
   data,
   onChange,
 }: {
   nodeId: string;
-  data: NoteNodeData;
-  onChange: (d: Partial<NoteNodeData>) => void;
+  data: FunctionNodeData;
+  onChange: (d: Partial<FunctionNodeData>) => void;
 }) {
   return (
     <div className="prop-section">
-      <label className="prop-label">Markdown</label>
+      <label className="prop-label">Description</label>
       <DebouncedTextarea
         className="prop-textarea"
-        value={data.markdown}
-        onChange={(v) => onChange({ markdown: v })}
-        placeholder="Write markdown notes..."
+        value={data.description}
+        onChange={(v) => onChange({ description: v })}
+        placeholder="Describe what this function does..."
         rows={12}
       />
     </div>

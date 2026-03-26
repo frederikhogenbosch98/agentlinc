@@ -118,17 +118,15 @@ const PALETTE_BLOCKS: PaletteBlock[] = [
     ),
   },
   {
-    label: 'Note',
+    label: 'Function',
     defaultData: () => ({
-      kind: 'note',
-      markdown: '',
+      kind: 'function',
+      description: '',
     }),
     icon: (
       <svg width="24" height="24" viewBox="0 0 18 18" fill="none">
-        <path d="M3 3h12v10l-4 4H3V3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M11 13v4l4-4h-4z" fill="currentColor" opacity="0.3" />
-        <line x1="6" y1="7" x2="12" y2="7" stroke="currentColor" strokeWidth="1" />
-        <line x1="6" y1="10" x2="10" y2="10" stroke="currentColor" strokeWidth="1" />
+        <text x="9" y="13" textAnchor="middle" fontSize="12" fill="currentColor" fontFamily="serif" fontStyle="italic">f</text>
+        <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
       </svg>
     ),
   },
@@ -146,7 +144,7 @@ function PaletteItem({ block }: { block: PaletteBlock }) {
   if (!block.submenu) {
     return (
       <div
-        className={`palette-icon-item palette-type-${block.systemType || 'note'}`}
+        className={`palette-icon-item palette-type-${block.systemType || 'function'}`}
         draggable
         onDragStart={(e) => onDragStart(e, block.defaultData)}
         title={block.label}
@@ -163,7 +161,7 @@ function PaletteItem({ block }: { block: PaletteBlock }) {
       onMouseLeave={() => setShowSubmenu(false)}
     >
       <div
-        className={`palette-icon-item palette-type-${block.systemType || 'note'}`}
+        className={`palette-icon-item palette-type-${block.systemType || 'function'}`}
         draggable
         onDragStart={(e) => onDragStart(e, block.defaultData)}
         title={block.label}

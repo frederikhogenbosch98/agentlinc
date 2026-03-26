@@ -18,14 +18,14 @@ import '@xyflow/react/dist/style.css';
 import { useGraphStore } from '../../store/useGraphStore';
 import { useUIStore } from '../../store/useUIStore';
 import { SystemNodeType } from '../nodes/SystemNode';
-import { NoteNodeType } from '../nodes/NoteNode';
+import { FunctionNodeType } from '../nodes/NoteNode';
 import { IOPortNodeType } from '../nodes/IOPortNode';
 import { LayerNodeType } from '../nodes/LayerNode';
 import { BidiEdge } from '../edges/BidiEdge';
 
 const nodeTypes = {
   system: SystemNodeType,
-  note: NoteNodeType,
+  function: FunctionNodeType,
   ioport: IOPortNodeType,
   layer: LayerNodeType,
 } as const;
@@ -237,7 +237,7 @@ export function FlowCanvas() {
           nodeColor={(node: any) => {
             const data = node.data;
             if (data?.kind === 'system') return '#3B82F6';
-            if (data?.kind === 'note') return '#F59E0B';
+            if (data?.kind === 'function') return '#F59E0B';
             if (data?.kind === 'ioport') return '#10B981';
             if (data?.kind === 'layer') return '#F472B6';
             return '#6B7280';

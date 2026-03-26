@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# AgentLinc
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A visual design tool for sketching algorithmic pipelines. Draw systems, connect them, drill into subsystems, and annotate everything — then export as JSON for AI-powered code generation.
 
-Currently, two official plugins are available:
+## Getting Started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Features
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Block Types
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **System** — A functional block with input/output. Double-click to open properties, click the down arrow to create/enter a subsystem.
+  - **Default** — General-purpose system block
+  - **Model** — ML model with training config (optimizer, lr, loss, scheduler, batch size, epochs) and a drag-and-drop layer builder
+- **Function** — A connectable block with an `f(x)` badge for describing standalone functions
+- **Database** — Bidirectional block (bottom handle) for database connections
+- **Remote Server** — Bidirectional block (bottom handle) for API/server connections
+- **Custom Code** — Block for custom code descriptions
+
+### Model Builder
+
+When inside a Model subsystem:
+- The palette switches to **layer types**: Linear, Conv2D, LSTM, GRU, MaxPool2D, AvgPool2D, BatchNorm, Dropout, ReLU, Sigmoid, Softmax, Flatten
+- Layers snap to a **horizontal rail** and auto-connect in sequence
+- Drag layers to **reorder** — they redistribute evenly on drop
+- Double-click a layer to **edit its parameters** (in_features, kernel_size, etc.)
+- **Training config** panel shows when no layer is selected (optimizer, lr, loss function, scheduler, batch size, epochs)
+
+### General
+
+- **Subsystems** — Hierarchical navigation. Click the down arrow on any system to drill in, breadcrumbs to go back, browser back button also works.
+- **Properties Panel** — Edit block name, type, and documentation (Description, Tests, Logging, Debug tabs with markdown)
+- **Undo/Redo** — Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z
+- **Duplicate** — Ctrl/Cmd+D
+- **Delete** — Backspace or Delete key
+- **Selection** — Left-click drag on canvas for selection box
+- **Pan** — Middle mouse button (scroll wheel) drag
+- **Light/Dark mode** — Toggle in the toolbar
+- **Persistence** — Auto-saves to localStorage
+- **Export/Import** — Download as `.agentlinc.json`, import to restore
+
+## Tech Stack
+
+- React + TypeScript
+- [React Flow](https://reactflow.dev) — Node editor
+- [Zustand](https://zustand-demo.pmnd.rs/) — State management
+- [Vite](https://vitejs.dev) — Build tool
+
+## Export Format
+
+The exported JSON is designed to be read by an LLM (like Claude) and translated into Python code. Each system includes its documentation tabs (description, tests, logging, debug notes), giving the LLM enough context to generate production-quality code with proper tests and observability.

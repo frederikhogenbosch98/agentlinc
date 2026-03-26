@@ -15,7 +15,7 @@ export function createEmptyDocs(): Docs {
   return { description: '', tests: '', logging: '', debug: '' };
 }
 
-export type NodeKind = 'system' | 'note' | 'ioport' | 'layer';
+export type NodeKind = 'system' | 'function' | 'ioport' | 'layer';
 
 export type SystemType = 'default' | 'model' | 'ml-model' | 'dataloader' | 'database' | 'remote-server' | 'custom-code';
 
@@ -90,9 +90,9 @@ export interface SystemNodeData {
   modelLayers?: ModelLayer[];
 }
 
-export interface NoteNodeData {
-  kind: 'note';
-  markdown: string;
+export interface FunctionNodeData {
+  kind: 'function';
+  description: string;
 }
 
 export interface IOPortNodeData {
@@ -107,7 +107,7 @@ export interface LayerNodeData {
   params: Record<string, any>;
 }
 
-export type AppNodeData = SystemNodeData | NoteNodeData | IOPortNodeData | LayerNodeData;
+export type AppNodeData = SystemNodeData | FunctionNodeData | IOPortNodeData | LayerNodeData;
 
 export interface AppEdge {
   id: string;

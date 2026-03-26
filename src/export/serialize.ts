@@ -1,4 +1,4 @@
-import type { Project, SystemNodeData, NoteNodeData } from '../types';
+import type { Project, SystemNodeData, FunctionNodeData } from '../types';
 import type { ExportSchema, ExportSubsystem, ExportNode, ExportEdge } from '../types/export';
 
 export function serializeProject(project: Project): ExportSchema {
@@ -24,10 +24,10 @@ export function serializeProject(project: Project): ExportSchema {
           subsystem: data.subsystemId,
           docs: { ...data.docs },
         });
-      } else if (node.data.kind === 'note') {
-        const data = node.data as NoteNodeData;
-        if (data.markdown) {
-          notes.push(data.markdown);
+      } else if (node.data.kind === 'function') {
+        const data = node.data as FunctionNodeData;
+        if (data.description) {
+          notes.push(data.description);
         }
       } else if (node.data.kind === 'ioport') {
         if (node.data.direction === 'input') {
