@@ -310,21 +310,23 @@ export function BlockPalette() {
 
   if (isModelSubsystem) {
     return (
-      <div className="sidebar sidebar-left palette-compact">
-        <div className="palette-icons">
+      <div className="sidebar sidebar-left palette-layers">
+        <div className="palette-layer-list">
           {LAYER_TYPES.map((lt) => (
             <div
               key={lt.value}
-              className="palette-icon-item palette-type-layer"
+              className="palette-layer-item"
               draggable
               onDragStart={(e) => onDragStart(e, () => makeLayerData(lt.value))}
-              title={lt.label}
             >
-              {LAYER_ICON_MAP[lt.value] || (
-                <svg width="24" height="24" viewBox="0 0 18 18" fill="none">
-                  <rect x="3" y="3" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
-              )}
+              <div className="palette-layer-icon">
+                {LAYER_ICON_MAP[lt.value] || (
+                  <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+                    <rect x="3" y="3" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                )}
+              </div>
+              <span className="palette-layer-label">{lt.label}</span>
             </div>
           ))}
         </div>

@@ -577,6 +577,58 @@ html, body, #root {
 .palette-type-note { color: var(--text-muted); }
 .palette-type-layer { color: #F472B6; }
 
+/* Layer palette (model subsystem) */
+.palette-layers {
+  width: 160px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  z-index: 100;
+}
+
+.palette-layer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+}
+
+.palette-layer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: grab;
+  color: #F472B6;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.palette-layer-item:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.palette-layer-item:active {
+  cursor: grabbing;
+}
+
+.palette-layer-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.palette-layer-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
 /* === Properties Panel === */
 .properties-content {
   display: flex;
