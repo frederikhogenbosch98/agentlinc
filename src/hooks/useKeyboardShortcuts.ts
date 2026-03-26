@@ -7,9 +7,15 @@ export function useKeyboardShortcuts() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
-      // Don't intercept when typing in inputs/textareas
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
+      // Don't intercept when typing in text inputs/textareas
+      if (target.isContentEditable) return;
+      if (target.tagName === 'TEXTAREA') return;
+      if (target.tagName === 'INPUT') {
+        const inputType = (target as HTMLInputElement).type;
+        // Allow delete/backspace to work for non-text inputs (checkboxes, etc.)
+        if (inputType === 'text' || inputType === 'number' || inputType === 'search' || inputType === 'password') {
+          return;
+        }
       }
 
       const isMod = e.metaKey || e.ctrlKey;

@@ -36,6 +36,8 @@ const edgeTypes = {
 
 const BIDI_TYPES = new Set(['database', 'remote-server']);
 
+const LAYER_RAIL_Y = 200;
+
 export function FlowCanvas() {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -47,8 +49,13 @@ export function FlowCanvas() {
   const addEdgeAction = useGraphStore((s) => s.addEdge);
   const removeNodes = useGraphStore((s) => s.removeNodes);
   const removeEdges = useGraphStore((s) => s.removeEdges);
+  const isModelSub = useGraphStore((s) => s.isModelSubsystem);
+  const autoConnectLayers = useGraphStore((s) => s.autoConnectLayers);
+  const redistributeLayers = useGraphStore((s) => s.redistributeLayers);
   const selectNodes = useUIStore((s) => s.selectNodes);
   const clearSelection = useUIStore((s) => s.clearSelection);
+
+  const isModel = isModelSub();
 
   const subsystem = project.subsystems[activeSubsystemId];
 
@@ -90,16 +97,35 @@ export function FlowCanvas() {
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => {
+      let needsAutoConnect = false;
+      let layerDragEnded = false;
       for (const change of changes) {
         if (change.type === 'position' && change.position) {
-          updateNodePosition(change.id, change.position);
+          const node = project.nodes[change.id];
+          if (isModel && node?.data.kind === 'layer') {
+            // Snap to horizontal rail while dragging
+            updateNodePosition(change.id, { x: change.position.x, y: LAYER_RAIL_Y });
+            needsAutoConnect = true;
+            // Detect drag end
+            if ('dragging' in change && change.dragging === false) {
+              layerDragEnded = true;
+            }
+          } else {
+            updateNodePosition(change.id, change.position);
+          }
         }
         if (change.type === 'remove') {
           removeNodes([change.id]);
+          if (isModel) layerDragEnded = true;
         }
       }
+      if (layerDragEnded) {
+        setTimeout(() => redistributeLayers(), 0);
+      } else if (needsAutoConnect) {
+        setTimeout(() => autoConnectLayers(), 0);
+      }
     },
-    [updateNodePosition, removeNodes]
+    [updateNodePosition, removeNodes, project.nodes, isModel, autoConnectLayers, redistributeLayers]
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(
@@ -166,13 +192,20 @@ export function FlowCanvas() {
           x: event.clientX,
           y: event.clientY,
         });
+        // Snap layer nodes to the rail
+        if (isModel && data.kind === 'layer') {
+          position.y = LAYER_RAIL_Y;
+        }
         const nodeId = addNodeAction(data, position);
         selectNodes([nodeId]);
+        if (isModel && data.kind === 'layer') {
+          setTimeout(() => redistributeLayers(), 0);
+        }
       } catch (err) {
         console.error('Drop failed:', err);
       }
     },
-    [screenToFlowPosition, addNodeAction, selectNodes]
+    [screenToFlowPosition, addNodeAction, selectNodes, isModel, autoConnectLayers]
   );
 
   return (

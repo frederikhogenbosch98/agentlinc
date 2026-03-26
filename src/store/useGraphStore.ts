@@ -57,6 +57,11 @@ interface GraphState {
   // Duplicate
   duplicateNodes: (nodeIds: string[]) => string[];
 
+  // Model subsystem helpers
+  isModelSubsystem: (subsystemId?: string) => boolean;
+  autoConnectLayers: () => void;
+  redistributeLayers: () => void;
+
   // Project
   setProject: (project: Project) => void;
   setProjectName: (name: string) => void;
@@ -418,6 +423,126 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       };
     });
     return newIds;
+  },
+
+  isModelSubsystem: (subsystemId?) => {
+    const { project, activeSubsystemId } = get();
+    const subId = subsystemId || activeSubsystemId;
+    for (const node of Object.values(project.nodes)) {
+      if (
+        node.data.kind === 'system' &&
+        (node.data as SystemNodeData).subsystemId === subId &&
+        (node.data as SystemNodeData).systemType === 'model'
+      ) {
+        return true;
+      }
+    }
+    return false;
+  },
+
+  autoConnectLayers: () => {
+    const state = get();
+    const subsystem = state.project.subsystems[state.activeSubsystemId];
+    if (!subsystem) return;
+
+    // Get only layer nodes, sorted by x position
+    const layerNodes = subsystem.nodeIds
+      .map((id) => state.project.nodes[id])
+      .filter((n) => n && n.data.kind === 'layer')
+      .sort((a, b) => a.position.x - b.position.x);
+
+    if (layerNodes.length === 0) return;
+
+    // Build new edges: chain layers left to right
+    const newEdges: Record<string, AppEdge> = {};
+    const newEdgeIds: string[] = [];
+
+    for (let i = 0; i < layerNodes.length - 1; i++) {
+      const edgeId = `auto_${layerNodes[i].id}_${layerNodes[i + 1].id}`;
+      newEdges[edgeId] = {
+        id: edgeId,
+        sourceNodeId: layerNodes[i].id,
+        sourcePortId: 'out',
+        targetNodeId: layerNodes[i + 1].id,
+        targetPortId: 'in',
+      };
+      newEdgeIds.push(edgeId);
+    }
+
+    // Keep non-layer edges (e.g., ioport connections) and replace layer edges
+    const keepEdges: Record<string, AppEdge> = {};
+    const keepEdgeIds: string[] = [];
+    for (const edgeId of subsystem.edgeIds) {
+      const edge = state.project.edges[edgeId];
+      if (!edge) continue;
+      const srcNode = state.project.nodes[edge.sourceNodeId];
+      const tgtNode = state.project.nodes[edge.targetNodeId];
+      const srcIsLayer = srcNode?.data.kind === 'layer';
+      const tgtIsLayer = tgtNode?.data.kind === 'layer';
+      if (!srcIsLayer && !tgtIsLayer) {
+        keepEdges[edgeId] = edge;
+        keepEdgeIds.push(edgeId);
+      }
+    }
+
+    // Remove old auto edges from project.edges
+    const cleanedEdges = { ...state.project.edges };
+    for (const edgeId of subsystem.edgeIds) {
+      if (!keepEdges[edgeId]) {
+        delete cleanedEdges[edgeId];
+      }
+    }
+
+    set({
+      project: {
+        ...state.project,
+        edges: { ...cleanedEdges, ...newEdges },
+        subsystems: {
+          ...state.project.subsystems,
+          [state.activeSubsystemId]: {
+            ...subsystem,
+            edgeIds: [...keepEdgeIds, ...newEdgeIds],
+          },
+        },
+      },
+    });
+  },
+
+  redistributeLayers: () => {
+    const state = get();
+    const subsystem = state.project.subsystems[state.activeSubsystemId];
+    if (!subsystem) return;
+
+    const LAYER_SPACING = 200;
+    const START_X = 100;
+    const RAIL_Y = 200;
+
+    // Get layer nodes sorted by current x position
+    const layerNodes = subsystem.nodeIds
+      .map((id) => state.project.nodes[id])
+      .filter((n) => n && n.data.kind === 'layer')
+      .sort((a, b) => a.position.x - b.position.x);
+
+    if (layerNodes.length === 0) return;
+
+    // Redistribute evenly
+    const newNodes = { ...state.project.nodes };
+    layerNodes.forEach((node, i) => {
+      newNodes[node.id] = {
+        ...node,
+        position: { x: START_X + i * LAYER_SPACING, y: RAIL_Y },
+      };
+    });
+
+    set({
+      project: {
+        ...state.project,
+        nodes: newNodes,
+      },
+    });
+
+    // Auto-connect after redistribution
+    get().autoConnectLayers();
   },
 
   setProject: (project) => {

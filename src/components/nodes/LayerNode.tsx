@@ -29,7 +29,7 @@ function LayerNodeComponent({ data, selected }: any) {
   return (
     <div
       className={`layer-node ${selected ? 'selected' : ''}`}
-      style={{ borderLeftColor: color }}
+      style={{ borderLeftColor: color, transform: 'translateY(-50%)' }}
     >
       <div className="layer-node-header" style={{ color }}>
         {label}
